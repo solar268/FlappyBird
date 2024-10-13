@@ -35,6 +35,12 @@ pass_pipe = False
 bg = pygame.image.load('img/bg-water.png')
 ground_img = pygame.image.load('img/ground-water.png')
 button_img = pygame.image.load('img/restart.png')
+top_scores_img = pygame.image.load('img/top_score.png')
+top_scores_img = pygame.transform.scale(top_scores_img, (int(
+    top_scores_img.get_width() * 0.1), int(top_scores_img.get_height() * 0.1)))
+
+# File to store top scores
+score_file = 'top_scores.txt'
 
 
 def draw_text(text, font, text_col, x, y):
@@ -48,6 +54,24 @@ def reset_game():
     flappy.rect.y = int(screen_height / 2)
     score = 0
     return score
+
+
+def load_top_scores():
+    if os.path.exists(score_file):
+        with open(score_file, 'r') as f:
+            scores = f.readlines()
+        return [int(score.strip()) for score in scores]
+    else:
+        return [0, 0, 0]  # Default top 3 scores
+
+
+def save_top_scores(new_score):
+    top_scores = load_top_scores()
+    top_scores.append(new_score)
+    top_scores = sorted(top_scores, reverse=True)[:3]  # Keep only the top 3
+    with open(score_file, 'w') as f:
+        for score in top_scores:
+            f.write(f"{score}\n")
 
 
 class Bird(pygame.sprite.Sprite):
@@ -135,7 +159,7 @@ class Pipe(pygame.sprite.Sprite):
 
 class Button():
     def __init__(self, x, y, image):
-        self.image = button_img
+        self.image = image
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -167,7 +191,14 @@ bird_group.add(flappy)
 
 # Create restart button instance
 button = Button(screen_width // 2 - 50, screen_height // 2 - 100, button_img)
+# top_scores_but = Button(screen_width // 2 - 50, screen_height // 2 + 50, top_scores_img)
+top_scores_but = Button(
+    screen_width - top_scores_img.get_width() - 10, 10, top_scores_img)
 
+
+top_scores = []
+show_top_scores = False
+score_saved = False
 run = True
 while run:
 
@@ -200,7 +231,6 @@ while run:
 
     # Look for collision
     if pygame.sprite.groupcollide(bird_group, pipe_group, False, False) or flappy.rect.top < 0:
-
         game_over = True
 
     # Check if the bird has hit the ground
@@ -231,9 +261,27 @@ while run:
 
     # Check for Game Over and reset
     if game_over == True:
+        if not score_saved:
+            save_top_scores(score)
+            top_scores = load_top_scores()
+            score_saved = True
+
         if button.draw() == True:
             game_over = False
             score = reset_game()
+            score_saved = False
+            show_top_scores = False
+
+        if top_scores_but.draw():
+            show_top_scores = True
+
+        if show_top_scores:
+            # Display the top scores
+            draw_text("Top Scores:", font, white, screen_width //
+                      2 - 100, screen_height // 2 + 100)
+            for i, top_score in enumerate(top_scores):
+                draw_text(f"{i + 1}: {top_score}", font, white, screen_width // 2 - 50,
+                          screen_height // 2 + 150 + i * 50)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
