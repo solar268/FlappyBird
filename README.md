@@ -1,3 +1,5 @@
+![Splashy Fish Screenshot](./img/screenshot.png)
+
 # Splashy Fish
 FlappyBird-inspired project using Pygame.
 
