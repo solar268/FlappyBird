@@ -14,6 +14,10 @@ screen_height = 748
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Splashy Fish')
 
+# Update game icon
+icon = pygame.image.load('img/icon.png')
+pygame.display.set_icon(icon)
+
 # Define font
 font = pygame.font.Font('font/PixelOperator-Bold.ttf', 60)
 
